@@ -13,7 +13,7 @@
   "author": {
     "name": "Morgan",
     "email": "morgan92333@gmail.com",
-    "url": "https://github.com/Morgan33329"
+    "url": "https://github.com/Morgan92333"
   },
   "dependencies": {
     "bcrypt": "^3.0.0",
@@ -36,7 +36,7 @@
     "babel-preset-stage-2": "^6.24.1"
   },
   "engines": {},
-  "homepage": "https://github.com/Morgan33329/inflex-lost-password",
+  "homepage": "https://github.com/Morgan92333/inflex-lost-password",
   "keywords": [
     "passport",
     "authentication"
