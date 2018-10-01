@@ -19,7 +19,7 @@ var defaultSettings = {
     'passwordsNotMatch' : null,
 
     'template' : {
-        'failed' : ''
+        'failed' : 'lost-password-fail'
     }
 };
 var settings = defaultSettings;

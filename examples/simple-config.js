@@ -1,6 +1,6 @@
 'use strict';
 
-import path from "path";
+var path = require("path");
 
 var port = 3000;
 

@@ -18,8 +18,8 @@ var defaultSettings = {
 
     'email' : {
         'from' : {
-            'email' : process.env.MAIL_USERNAME || 'lost-password@project.org',
-            'name' : process.env.APP_NAME || 'Unknown Project'
+            'email' : 'lost-password@project.org',
+            'name' : 'lost-password@project.org'
         },
         'view' : 'lost-password',
         'subject' : 'Lost password'

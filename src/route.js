@@ -1,6 +1,9 @@
 import { lostPasswordMiddleware } from './lost-password';
 import { newPasswordMiddleware } from './new-password';
 
+import { authConfig } from 'inflex-authentication';
+
+// Send lost password
 var sendSuccess = function (req, res) {
     res.json({
         'error' : false
@@ -10,13 +13,27 @@ var sendSuccess = function (req, res) {
 export function sendLostPasswordRoute (app, options) {
     options = options || {};
 
+    let defaultFrom = authConfig('mailTransport.auth.user'),
+        
+        fromMail = options.from && options.from.email 
+            ? options.from.email
+            : defaultFrom,
+        fromName = options.from && options.from.name
+            ? options.from.name
+            : fromMail;
+
     app.post('/api/lost-password', lostPasswordMiddleware({
         'email' : {
-            'view' : options.view || 'lost-password'
+            'from' : {
+                'email' : fromMail,
+                'name' : fromName
+            },
+            'subject' : options.subject || 'Lost password'
         }
     }), options.action || sendSuccess);
 }
 
+// Show new password form
 var newPassword = function (req, res) {
     res.render('new-password', {
         code : req.query['code'] || '0'
@@ -27,12 +44,11 @@ export function showNewPasswordRoute (app, options) {
     options = options || {};
 
     app.get('/new-password', newPasswordMiddleware('show', {
-        'template' : {
-            'failed' : options.failedView || 'new-password-fail'
-        }
+        'invalidCodeMessage' : options.invalidCode || 'This link is invalid'
     }), options.action || newPassword);
 }
 
+// Save new password
 var postNewPassword = function(req, res) {
     res.json({
         'error' : false
