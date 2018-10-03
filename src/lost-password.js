@@ -8,14 +8,19 @@ import {
 /**
  * Create default routes for login if we are lazy
  */
-export function lostPasswordRoutes (app, options) {
+export function lostPasswordRoutes (app, version, options) {
+    if (typeof version === 'object' && !options) {
+        options = version;
+        version = null;
+    }
+
     options = options || {};
 
-    sendLostPasswordRoute(app, options.sendEmail || {});
+    sendLostPasswordRoute(app, options.sendEmail || {}, version);
 
-    showNewPasswordRoute(app, options.showNew || {});
+    showNewPasswordRoute(app, options.showNew || {}, version);
 
-    saveNewPasswordRoute(app, options.saveNew || {});
+    saveNewPasswordRoute(app, options.saveNew || {}, version);
 }
 
 export function lostPasswordMiddleware (options, middleware) {

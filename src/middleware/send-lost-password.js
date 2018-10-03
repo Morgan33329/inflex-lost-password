@@ -108,8 +108,8 @@ var sendEmail = function (req, res, next) {
                     'url' : settings.newPasswordUrl,
 
                     'from' : settings.email.from.email,
-
                     'subject' : settings.email.subject,
+                    
                     'view' : settings.email.view
                 });
             } else

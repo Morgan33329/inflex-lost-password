@@ -10,7 +10,7 @@ var sendSuccess = function (req, res) {
     });
 }
 
-export function sendLostPasswordRoute (app, options) {
+export function sendLostPasswordRoute (app, options, version) {
     options = options || {};
 
     let defaultFrom = authConfig('mailTransport.auth.user'),
@@ -22,15 +22,20 @@ export function sendLostPasswordRoute (app, options) {
             ? options.from.name
             : fromMail;
 
-    app.post('/api/lost-password', lostPasswordMiddleware({
-        'email' : {
-            'from' : {
-                'email' : fromMail,
-                'name' : fromName
-            },
-            'subject' : options.subject || 'Lost password'
-        }
-    }), options.action || sendSuccess);
+    app.post(
+        (version ? '/' + version : '') + '/api/lost-password', 
+        lostPasswordMiddleware({
+            'version' : version,
+            'email' : {
+                'from' : {
+                    'email' : fromMail,
+                    'name' : fromName
+                },
+                'subject' : options.subject || 'Lost password'
+            }
+        }), 
+        options.action || sendSuccess
+    );
 }
 
 // Show new password form
@@ -43,9 +48,13 @@ var newPassword = function (req, res) {
 export function showNewPasswordRoute (app, options) {
     options = options || {};
 
-    app.get('/new-password', newPasswordMiddleware('show', {
-        'invalidCodeMessage' : options.invalidCode || 'This link is invalid'
-    }), options.action || newPassword);
+    app.get(
+        '/new-password', 
+        newPasswordMiddleware('show', {
+            'invalidCodeMessage' : options.invalidCode || 'This link is invalid'
+        }), 
+        options.action || newPassword
+    );
 }
 
 // Save new password
@@ -56,19 +65,22 @@ var postNewPassword = function(req, res) {
 };
 
 export function saveNewPasswordRoute (app, options) {
-    app.post('/new-password', newPasswordMiddleware('save', {
-        'invalidRequest' : function(req, res, error) {
-            res.status(422).json({
-                'error' : true,
-                'message' : 'Invalid password'
-            });
-        },
+    app.post(
+        '/new-password', 
+        newPasswordMiddleware('save', {
+            'invalidRequest' : function(req, res, error) {
+                res.status(422).json({
+                    'error' : true,
+                    'message' : 'Invalid password'
+                });
+            },
 
-        'passwordsNotMatch' : function(req, res) {
-            res.status(422).json({
-                'error' : true,
-                'message' : 'The passwords you entered do not match'
-            });
-        }
-    }), options.action || postNewPassword);
+            'passwordsNotMatch' : function(req, res) {
+                res.status(422).json({
+                    'error' : true,
+                    'message' : 'The passwords you entered do not match'
+                });
+            }
+        }), options.action || postNewPassword
+    );
 }
