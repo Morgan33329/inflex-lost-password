@@ -10,6 +10,8 @@ import {
 } from './../services/hash';
 
 var defaultSettings = {
+    'version' : '',
+
     'emailField' : 'email',
 
     'autoSend' : true,
@@ -27,21 +29,25 @@ var defaultSettings = {
 
     'invalidRequest' : function (req, res) {
         return res.status(422).json({ 
-            'error' : true,
-            "code" : '4220201',
-            "type" : '',
-            "title" : 'Invalid username or password',
-            "detail" : 'Invalid username or password'
+            'success' : false,
+            'error' : {
+                'code' : '4220201',
+                'type' : '',
+                'title' : 'Invalid username or password',
+                'detail' : 'Invalid username or password'
+            }
         });
     },
 
     'emailNotExists' : function (req, res) {
         return res.status(422).json({ 
-            'error' : true,
-            "code" : '4220202',
-            "type" : '',
-            "title" : 'Email not exists',
-            "detail" : "Email not exisst in database"
+            'success' : false,
+            'error' : {
+                'code' : '4220202',
+                'type' : '',
+                'title' : 'Email not exists',
+                'detail' : 'Email not exisst in database'
+            }
         });
     },
 
@@ -67,7 +73,7 @@ var isValidRequest = function (req, res, next) {
 var checkEmailExists = function (req, res, next) {
     let to = req.body[settings['emailField']];
 
-    repository("account")
+    repository('account')
         .findOneByAccount(to)
         .then(account => { 
             if (!account) {
@@ -76,15 +82,15 @@ var checkEmailExists = function (req, res, next) {
                 return settings.emailNotExists(req, res);
             }
 
-            repository("password")
+            repository('password')
                 .hasPassword(account.identity_id)
                 .then(has => {
                     if (has) {
-                        console.log("Email found");
+                        console.log('Email found');
 
                         next();
                     } else {
-                        console.log("Email found, but no password");
+                        console.log('Email found, but no password');
 
                         if (settings.noPassword)
                             settings.noPassword(req, res);
