@@ -51,6 +51,7 @@ export function showNewPasswordRoute (app, options) {
     app.get(
         '/new-password', 
         newPasswordMiddleware('show', {
+            'version' : version,
             'invalidCodeMessage' : options.invalidCode || 'This link is invalid'
         }), 
         options.action || newPassword
@@ -68,6 +69,7 @@ export function saveNewPasswordRoute (app, options) {
     app.post(
         '/new-password', 
         newPasswordMiddleware('save', {
+            'version' : version,
             'invalidRequest' : function(req, res, error) {
                 res.status(422).json({
                     'error' : true,

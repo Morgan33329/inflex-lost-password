@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 import { check, validationResult } from 'express-validator/check';
+import { defineSettings, settingsByUrl } from 'inflex-authentication/helpers';
 
 import { repository, getId } from './../database';
 import {
@@ -9,7 +10,7 @@ import {
     send
 } from './../services/hash';
 
-var defaultSettings = {
+const defaultSettings = {
     'version' : '',
 
     'emailField' : 'email',
@@ -53,9 +54,11 @@ var defaultSettings = {
 
     'noPassword' : null
 }
-var settings = defaultSettings;
+var versionSettings = defaultSettings;
 
 var validateEmail = function (req, res, next) {
+    let settings = settingsByUrl(req, versionSettings);
+
     return check(settings.emailField).isEmail()(req, res, next);
 }
 
@@ -63,6 +66,8 @@ var isValidRequest = function (req, res, next) {
     const errors = validationResult(req);
     
     if (!errors.isEmpty()) {
+        let settings = settingsByUrl(req, versionSettings);
+
         console.log('Invalid lost password request', errors.array());
 
         settings.invalidRequest(req, res, errors.array(), settings);
@@ -71,7 +76,9 @@ var isValidRequest = function (req, res, next) {
 }
 
 var checkEmailExists = function (req, res, next) {
-    let to = req.body[settings['emailField']];
+    let settings = settingsByUrl(req, versionSettings),
+
+        to = req.body[settings['emailField']];
 
     repository('account')
         .findOneByAccount(to)
@@ -105,7 +112,9 @@ var checkEmailExists = function (req, res, next) {
 }
 
 var sendEmail = function (req, res, next) {
-    let to = req.body[settings['emailField']];
+    let settings = settingsByUrl(req, versionSettings),
+
+        to = req.body[settings['emailField']];
 
     generateHash(to)
         .then(hash => {
@@ -129,9 +138,12 @@ var sendEmail = function (req, res, next) {
 }
 
 export default function (options, middleware) {
-    settings = _.merge(defaultSettings, options || {});
+    let version = options && options.version || 'default';
 
-    var ret = middleware || [];
+    middleware = middleware || [];
+    versionSettings = defineSettings(version, options, versionSettings, defaultSettings);
+
+    var ret = middleware;
 
     ret.push(
         validateEmail,

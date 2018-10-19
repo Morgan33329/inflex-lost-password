@@ -2,13 +2,14 @@
 
 import _ from 'lodash';
 import { check, validationResult } from 'express-validator/check';
-
 import { authConfig } from 'inflex-authentication';
+import { defineSettings, settingsByUrl } from 'inflex-authentication/helpers';
+
 import { repository } from './../database';
 import { change as changePassword } from './../services/password';
 import { deleteHash } from './../services/hash';
 
-var defaultSettings = {
+const defaultSettings = {
     'codeField' : 'code',
     'passwordField' : 'password',
     'confirmField' : 'password_confirm',
@@ -22,7 +23,7 @@ var defaultSettings = {
         'failed' : 'lost-password-fail'
     }
 };
-var settings = defaultSettings;
+var versionSettings = {};
 
 var getCode = function (req) {
     return req.query[settings['codeField']] || req.body[settings['codeField']];
@@ -35,6 +36,8 @@ var checkCode = function (req, res, next) {
         .findHash(code)
         .then(hash => {
             if (!hash) {
+                let settings = settingsByUrl(req, versionSettings);
+
                 res.render(settings.template.failed, {
                     message : settings.invalidCodeMessage
                 });
@@ -54,6 +57,8 @@ var checkCode = function (req, res, next) {
 export function show (options, middleware) {
     settings = _.merge(defaultSettings, options || {});
 
+    let settings = settingsByUrl(req, versionSettings);
+
     if (settings.template.failed === '') {
         console.log('ERROR: You need define error message template for new password');
         process.exit(1);
@@ -71,7 +76,8 @@ export function show (options, middleware) {
 // Save password
 
 var validateInput = function (req, res, next) {
-    let validateInputs = authConfig('validateInputs');
+    let validateInputs = authConfig('validateInputs'),
+        settings = settingsByUrl(req, versionSettings);
 
     return validateInputs.password(check(settings.passwordField))(req, res, next);
 }
@@ -94,6 +100,8 @@ var checkEqualPassword = function (req, res, next) {
     if (password && password === confirm) {
         next();
     } else {
+        let settings = settingsByUrl(req, versionSettings);
+
         settings.passwordsNotMatch(req, res);
     }
 }
@@ -119,7 +127,12 @@ var savePassword = function (req, res, next) {
 }
 
 export function save (options, middleware) {
-    settings = _.merge(defaultSettings, options || {});
+    let version = options && options.version || 'default';
+
+    middleware = middleware || [];
+    versionSettings = defineSettings(version, options, versionSettings, defaultSettings);
+
+    let settings = settingsByUrl(req, versionSettings);
 
     if (settings.invalidRequest === null) {
         console.log('ERROR: You need define invalidRequest function for new password');
@@ -129,7 +142,7 @@ export function save (options, middleware) {
         process.exit(1);
     }
 
-    var ret = middleware || [];
+    var ret = middleware;
 
     ret.push(
         checkCode,
